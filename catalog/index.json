@@ -1,6 +1,21 @@
 {
   "format": "pimfx-community-catalog",
   "formatVersion": 1,
-  "updatedAt": null,
-  "presets": []
+  "updatedAt": "2026-09-20T00:00:00Z",
+  "presets": [
+    {
+      "id": "community-clean",
+      "name": "Community Clean",
+      "author": "Pi-MFX",
+      "description": "A dependency-free clean preset for testing the community catalog and installation flow.",
+      "tags": [
+        "clean",
+        "starter",
+        "test"
+      ],
+      "license": "CC0-1.0",
+      "minimumPiMfxVersion": "0.1.0",
+      "manifestPath": "presets/community-clean/manifest.json"
+    }
+  ]
 }
