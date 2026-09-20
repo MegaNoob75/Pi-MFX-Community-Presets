@@ -1,0 +1,76 @@
+name: Validate catalog
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --disable-pip-version-check "jsonschema==4.23.0"
+      - name: Validate catalog files
+        shell: python
+        run: |
+          import json
+          import pathlib
+          import re
+          import sys
+          from jsonschema import Draft202012Validator
+
+          root = pathlib.Path(".")
+          schema = json.loads((root / "schema/preset-package-v1.schema.json").read_text(encoding="utf-8"))
+          validator = Draft202012Validator(schema)
+          failures = []
+
+          forbidden_suffixes = {
+              ".exe", ".dll", ".so", ".dylib", ".sh", ".bash", ".bat", ".cmd",
+              ".ps1", ".py", ".js", ".mjs", ".cjs", ".html", ".htm", ".svg",
+              ".nam", ".aidax", ".wav", ".flac", ".mp3", ".lv2"
+          }
+
+          for path in (root / "presets").rglob("*") if (root / "presets").exists() else []:
+              if path.is_symlink():
+                  failures.append(f"{path}: symlinks are forbidden")
+                  continue
+              if not path.is_file():
+                  continue
+              if path.suffix.lower() in forbidden_suffixes:
+                  failures.append(f"{path}: forbidden file type")
+              if path.name not in {"manifest.json", "preview.webp", "preview.ogg"}:
+                  failures.append(f"{path}: unexpected package file")
+              if path.stat().st_size > 10 * 1024 * 1024:
+                  failures.append(f"{path}: exceeds 10 MiB repository limit")
+              if path.name == "manifest.json":
+                  try:
+                      data = json.loads(path.read_text(encoding="utf-8"))
+                  except Exception as exc:
+                      failures.append(f"{path}: invalid JSON: {exc}")
+                      continue
+                  for error in validator.iter_errors(data):
+                      failures.append(f"{path}: {error.json_path}: {error.message}")
+                  rendered = json.dumps(data, separators=(",", ":"))
+                  if re.search(r"https?://", rendered, re.IGNORECASE):
+                      allowed_uris = [slot.get("uri", "") for slot in data.get("preset", {}).get("chain", [])]
+                      without_uris = rendered
+                      for uri in allowed_uris:
+                          without_uris = without_uris.replace(json.dumps(uri)[1:-1], "")
+                      if re.search(r"https?://", without_uris, re.IGNORECASE):
+                          failures.append(f"{path}: arbitrary URL outside trusted LV2 URI fields")
+
+          catalog = json.loads((root / "catalog/index.json").read_text(encoding="utf-8"))
+          if catalog.get("format") != "pimfx-community-catalog" or catalog.get("formatVersion") != 1:
+              failures.append("catalog/index.json: unsupported catalog format")
+
+          if failures:
+              print("\n".join(failures))
+              sys.exit(1)
+          print("Catalog validation passed")
