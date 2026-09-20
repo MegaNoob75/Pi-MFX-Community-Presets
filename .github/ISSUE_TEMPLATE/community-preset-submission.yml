@@ -1,0 +1,36 @@
+name: Community preset submission
+description: Submit a Pi-MFX preset manifest for safety checks and catalog review.
+title: "[Preset]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing a Pi-MFX preset.
+
+        Pi-MFX should have downloaded a JSON manifest before opening this form. Attach that JSON file below. This intake issue does not publish the preset: a maintainer reviews it, proposes it through a pull request, and the catalog checks must pass before merge.
+  - type: upload
+    id: manifest
+    attributes:
+      label: Preset manifest
+      description: Attach the JSON file downloaded from Pi-MFX. Do not attach plugins, scripts, models, IRs, or other executable content.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes for the reviewer
+      description: Optional context about the sound, intended instrument, or required equipment.
+      placeholder: Clean, crunch, high gain, bass, acoustic, or other helpful details.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Submission checks
+      options:
+        - label: I created this preset or have permission to share it under the license in the manifest.
+          required: true
+        - label: I understand that plugins, models, IR files, scripts, and arbitrary download links are not included.
+          required: true
+        - label: I understand that this submission will be public and requires review before it appears in the catalog.
+          required: true
