@@ -15,7 +15,8 @@
       ],
       "license": "CC0-1.0",
       "minimumPiMfxVersion": "0.1.0",
-      "manifestPath": "presets/community-clean/manifest.json"
+      "manifestPath": "presets/community-clean/manifest.json",
+      "manifestSha256": "05ce2f7a4b8c243b77dd766cd60e716aa7c762b7bf14c7fb2d4d31d72b4e7ad3"
     }
   ]
 }
