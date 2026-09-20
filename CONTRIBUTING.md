@@ -1,8 +1,14 @@
 # Contributing
 
-Direct preset uploads and pull requests are not accepted yet.
+## Submit from Pi-MFX
 
-When the Milestone 5 quarantine service is available, Pi-MFX will generate a manifest from the active preset and submit it for automated validation and human review. Only the publishing bot may add approved packages to `presets/`.
+1. Open **Community Presets → Share Preset**.
+2. Enter the author, license, description, and tags.
+3. Select **Create Manifest**.
+4. Select **Submit for Review**. Pi-MFX downloads the JSON manifest and opens the [submission form](https://github.com/MegaNoob75/Pi-MFX-Community-Presets/issues/new?template=community-preset-submission.yml).
+5. Attach the downloaded JSON file and submit the form.
+
+The intake issue is the quarantine boundary: it cannot change the catalog. A maintainer reviews the attachment, proposes accepted data through a pull request, waits for GitHub Actions to pass, and then approves the merge. No GitHub credential is stored on a Pi-MFX device.
 
 ## Allowed package content
 
@@ -12,10 +18,11 @@ When the Milestone 5 quarantine service is available, Pi-MFX will generate a man
 - TONE3000 model IDs, architecture, expected filename, and checksum
 - Stable identifiers from supported IR providers
 - Author, description, tags, license, compatibility, and checksums
-- Optional preview media that the quarantine service has decoded and safely re-encoded
 
 ## Never allowed
 
 Plugins, NAM/AIDA-X model files, IR files, executables, scripts, installer commands, HTML, JavaScript, SVG, symlinks, path traversal, secrets, credentials, or arbitrary download URLs.
 
-Approval requires schema validation, archive-safety checks, malware scanning, duplicate detection, clean-package reconstruction, isolated Pi-MFX test loading, and human review.
+## Approval checks
+
+Approval requires strict schema and content validation, dependency review, checksum verification, duplicate detection, a passing catalog workflow, and human review. Untrusted submission attachments are never executed.
