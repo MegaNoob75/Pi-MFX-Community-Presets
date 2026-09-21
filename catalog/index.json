@@ -1,7 +1,7 @@
 {
   "format": "pimfx-community-catalog",
   "formatVersion": 1,
-  "updatedAt": "2026-09-20T00:00:00Z",
+  "updatedAt": "2026-09-21T08:05:33Z",
   "presets": [
     {
       "id": "community-clean",
@@ -17,6 +17,19 @@
       "minimumPiMfxVersion": "0.1.0",
       "manifestPath": "presets/community-clean/manifest.json",
       "manifestSha256": "05ce2f7a4b8c243b77dd766cd60e716aa7c762b7bf14c7fb2d4d31d72b4e7ad3"
+    },
+    {
+      "id": "preset-3",
+      "name": "preset 3",
+      "author": "ross",
+      "description": "test of preset shareing",
+      "tags": [
+        "testing"
+      ],
+      "license": "MIT",
+      "minimumPiMfxVersion": "0.1.0",
+      "manifestPath": "presets/preset-3/manifest.json",
+      "manifestSha256": "b78982a757f4c2cd61a1370521c9d1ab248a1e97da6b913fa2109694588ba2b1"
     }
   ]
 }
