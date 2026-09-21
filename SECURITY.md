@@ -1,9 +1,19 @@
 # Security Policy
 
-Do not open a public issue containing credentials, tokens, private account data, or a suspicious package payload.
+Do not submit credentials, tokens, private account data, or confidential filenames.
 
-Community packages are untrusted until the quarantine pipeline has validated, reconstructed, test-loaded, and approved them. A package must never be executed, and provider assets must be resolved from their stable identifiers through Pi-MFX's trusted integrations.
+Community attachments are untrusted data. The submission workflow:
 
-The catalog repository must not contain GitHub publishing credentials. Protected-branch writes will be limited to the publishing bot when that service is introduced.
+- accepts one GitHub-hosted JSON attachment with a 1 MiB limit;
+- validates it against the strict manifest schema and additional content guards;
+- never executes submitted content;
+- requires a maintainer with repository write access to apply **approved-for-pr**;
+- creates a separate temporary branch and pull request;
+- requires catalog validation and a human merge;
+- deletes the temporary branch after the pull request is closed.
 
-For now, report catalog security concerns through the private security-reporting option on this repository.
+The workflow uses GitHub's short-lived repository token with only the permissions required by each job. No personal GitHub token belongs in this repository or on a Pi-MFX device.
+
+Provider assets are resolved later through Pi-MFX's trusted integrations and verified by checksum. Model, IR, plugin, audio, script, and executable files are not accepted into this catalog.
+
+Report catalog vulnerabilities using GitHub's private security-reporting option rather than a public issue.
