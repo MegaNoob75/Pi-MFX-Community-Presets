@@ -1,0 +1,121 @@
+name: Process preset submissions
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+  pull_request:
+    types: [closed]
+
+jobs:
+  validate-submission:
+    if: github.event_name == 'issues' && (github.event.action == 'opened' || github.event.action == 'edited')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned validator
+        run: python -m pip install --disable-pip-version-check "jsonschema==4.23.0"
+      - name: Validate attached manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set +e
+          python .github/scripts/catalog_guard.py validate-issue --event "$GITHUB_EVENT_PATH"
+          result=$?
+          set -e
+          if [ "$result" -eq 0 ]; then
+            gh api --method POST "repos/$REPOSITORY/labels" \
+              -f name="approved-for-pr" \
+              -f color="0E8A16" \
+              -f description="Maintainer approved this validated submission for a generated pull request" \
+              >/dev/null 2>&1 || true
+            gh issue comment "$ISSUE_NUMBER" --repo "$REPOSITORY" \
+              --body "✅ The attached manifest passed the automated safety and schema checks. A maintainer can now apply the **approved-for-pr** label to generate its pull request."
+          else
+            gh issue comment "$ISSUE_NUMBER" --repo "$REPOSITORY" \
+              --body "❌ The attached manifest did not pass validation. Open the latest **Process preset submissions** workflow run for the rejection reason, then edit this issue with a corrected JSON attachment."
+          fi
+          exit "$result"
+
+  create-pull-request:
+    if: github.event_name == 'issues' && github.event.action == 'labeled' && github.event.label.name == 'approved-for-pr'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Verify approving actor has write access
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          permission="$(gh api "repos/$REPOSITORY/collaborators/$ACTOR/permission" --jq .permission)"
+          case "$permission" in
+            admin|maintain|write) ;;
+            *) echo "Only a repository maintainer may approve a submission."; exit 1 ;;
+          esac
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned validator
+        run: python -m pip install --disable-pip-version-check "jsonschema==4.23.0"
+      - name: Revalidate and prepare catalog files
+        id: prepare
+        run: python .github/scripts/catalog_guard.py prepare-issue --event "$GITHUB_EVENT_PATH"
+      - name: Create isolated submission branch and pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ steps.prepare.outputs.issue_number }}
+          PRESET_ID: ${{ steps.prepare.outputs.preset_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          branch="submission/issue-$ISSUE_NUMBER-$PRESET_ID"
+          if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null 2>&1; then
+            echo "Submission branch already exists: $branch"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add "presets/$PRESET_ID/manifest.json" catalog/index.json
+          git commit -m "Add community preset $PRESET_ID"
+          git push origin "$branch"
+          pr_url="$(gh pr create \
+            --repo "$REPOSITORY" \
+            --base main \
+            --head "$branch" \
+            --title "Add community preset $PRESET_ID" \
+            --body "Generated from validated submission #$ISSUE_NUMBER. The manifest remains data-only and requires a human merge.\n\nCloses #$ISSUE_NUMBER")"
+          gh workflow run validate-catalog.yml --repo "$REPOSITORY" --ref "$branch"
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPOSITORY" \
+            --body "✅ Pull request created: $pr_url\n\nWait for **Validate catalog** to pass, review the changes, then merge it."
+
+  delete-submission-branch:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'submission/issue-')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete temporary submission branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: gh api --method DELETE "repos/$REPOSITORY/git/refs/heads/$HEAD_REF" || true
