@@ -83,17 +83,21 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           branch="submission/issue-$ISSUE_NUMBER-$PRESET_ID"
-          if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null 2>&1; then
-            echo "Submission branch already exists: $branch"
-            exit 1
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "$branch"
-          git add "presets/$PRESET_ID/manifest.json" catalog/index.json
-          git commit -m "Add community preset $PRESET_ID"
-          git push origin "$branch"
-          pr_url="$(gh pr create \
+          existing_pr="$(gh pr list --repo "$REPOSITORY" --head "$branch" --state open --json url --jq '.[0].url // empty')"
+          if [ -n "$existing_pr" ]; then
+            pr_url="$existing_pr"
+          else
+            if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null 2>&1; then
+              echo "Removing stale submission branch left by an interrupted run: $branch"
+              git push origin --delete "$branch"
+            fi
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git switch -c "$branch"
+            git add "presets/$PRESET_ID/manifest.json" catalog/index.json
+            git commit -m "Add community preset $PRESET_ID"
+            git push origin "$branch"
+            pr_url="$(gh pr create \
             --repo "$REPOSITORY" \
             --base main \
             --head "$branch" \
