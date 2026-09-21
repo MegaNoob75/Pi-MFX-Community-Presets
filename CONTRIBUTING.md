@@ -12,14 +12,14 @@ GitHub validates the attachment as data. It does not execute the submission.
 
 ## Maintainer approval
 
-1. Wait for the issue comment confirming that validation passed.
+1. Wait for the Preset submission comment confirming that validation passed.
 2. Review the manifest summary and submission notes.
 3. Apply the **approved-for-pr** label.
 4. Open the automatically generated pull request.
 5. Wait for **Validate catalog** to pass.
 6. Review the changed manifest and catalog entry, then merge.
 
-The generated branch is unique to that submission and is deleted automatically when its pull request is merged or closed. Merging closes the intake issue.
+The generated branch is unique to that submission and is deleted automatically when its pull request is merged or closed. Merging closes the Preset submission.
 
 ## Allowed content
 
@@ -33,4 +33,4 @@ The generated branch is unique to that submission and is deleted automatically w
 
 Plugins, model files, IR files, audio, executables, scripts, installer commands, HTML, JavaScript, SVG, symlinks, path traversal, secrets, credentials, or arbitrary download URLs.
 
-Automation checks structure, paths, identifiers, checksums, and forbidden content. A human remains responsible for authorship, licensing, usefulness, and the final merge.
+Automation rejects duplicate names and duplicate preset/settings fingerprints, then checks structure, paths, identifiers, checksums, TooB routing, and forbidden content. A human remains responsible for authorship, licensing, usefulness, and the final merge.
