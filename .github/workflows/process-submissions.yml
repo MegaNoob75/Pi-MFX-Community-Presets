@@ -40,7 +40,7 @@ jobs:
               --body "✅ The attached manifest passed the automated safety and schema checks. A maintainer can now apply the **approved-for-pr** label to generate its pull request."
           else
             gh issue comment "$ISSUE_NUMBER" --repo "$REPOSITORY" \
-              --body "❌ The attached manifest did not pass validation. Open the latest **Process preset submissions** workflow run for the rejection reason, then edit this issue with a corrected JSON attachment."
+              --body "❌ The attached manifest did not pass validation. Open the latest **Process preset submissions** workflow run for the rejection reason, then edit this preset submission with a corrected JSON attachment."
           fi
           exit "$result"
 
@@ -82,7 +82,7 @@ jobs:
           PRESET_ID: ${{ steps.prepare.outputs.preset_id }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          branch="submission/issue-$ISSUE_NUMBER-$PRESET_ID"
+          branch="submission/request-$ISSUE_NUMBER-$PRESET_ID"
           existing_pr="$(gh pr list --repo "$REPOSITORY" --head "$branch" --state open --json url --jq '.[0].url // empty')"
           if [ -n "$existing_pr" ]; then
             pr_url="$existing_pr"
@@ -102,25 +102,38 @@ jobs:
             --base main \
             --head "$branch" \
             --title "Add community preset $PRESET_ID" \
-              --body "Generated from validated submission #$ISSUE_NUMBER. The manifest remains data-only and requires a human merge.\n\nCloses #$ISSUE_NUMBER")"
+              --body "Generated from validated preset submission #$ISSUE_NUMBER. The manifest remains data-only and requires a human merge.")"
           fi
           gh workflow run validate-catalog.yml --repo "$REPOSITORY" --ref "$branch"
           gh issue comment "$ISSUE_NUMBER" --repo "$REPOSITORY" \
             --body "✅ Pull request created: $pr_url\n\nWait for **Validate catalog** to pass, review the changes, then merge it."
 
-  delete-submission-branch:
+  complete-preset-submission:
     if: >-
       github.event_name == 'pull_request' &&
       github.event.action == 'closed' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      startsWith(github.event.pull_request.head.ref, 'submission/issue-')
+      startsWith(github.event.pull_request.head.ref, 'submission/request-')
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: write
     steps:
-      - name: Delete temporary submission branch
+      - name: Clean up accepted preset submission
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
           REPOSITORY: ${{ github.repository }}
-        run: gh api --method DELETE "repos/$REPOSITORY/git/refs/heads/$HEAD_REF" || true
+        run: |
+          gh api --method DELETE "repos/$REPOSITORY/git/refs/heads/$HEAD_REF" || true
+          if [ "$MERGED" = "true" ]; then
+            submission_number="${HEAD_REF#submission/request-}"
+            submission_number="${submission_number%%-*}"
+            gh issue edit "$submission_number" --repo "$REPOSITORY" --remove-label "approved-for-pr" || true
+            gh issue comment "$submission_number" --repo "$REPOSITORY" \
+              --body "✅ Preset accepted and published through $PR_URL."
+            gh issue close "$submission_number" --repo "$REPOSITORY" \
+              --reason completed
+          fi
