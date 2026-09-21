@@ -65,7 +65,7 @@ def walk(value, depth=0):
 
 
 def validate_manifest(data, source="manifest"):
-    schema = load_json(ROOT / "schema/preset-package-v1.schema.json")
+    schema = load_json(ROOT / "schema/preset-package-v2.schema.json")
     errors = sorted(Draft202012Validator(schema).iter_errors(data), key=lambda item: list(item.path))
     if errors:
         detail = "; ".join(f"{error.json_path}: {error.message}" for error in errors[:8])
@@ -113,12 +113,39 @@ def validate_manifest(data, source="manifest"):
             if not filename or filename in {".", ".."} or ".." in filename:
                 raise GuardError(f"{source}: unsafe asset filename")
 
+    if data.get("license") != "MIT":
+        raise GuardError(f"{source}: preset manifests must use the MIT license")
+    if data.get("dependencies", {}).get("irs") or data.get("dependencies", {}).get("localAssets"):
+        raise GuardError(f"{source}: every NAM and IR must use a trusted TONE3000 reference")
+    for slot in data.get("preset", {}).get("chain", []):
+        uri = slot.get("uri", "")
+        for filename in slot.get("state", {}).get("properties", {}).values():
+            folded = str(filename).lower()
+            if folded.endswith(".nam") and uri != "http://two-play.com/plugins/toob-nam":
+                raise GuardError(f"{source}: NAM files must use TooB Neural Amp Modeler")
+            if folded.endswith(".wav") and uri != "http://two-play.com/plugins/toob-cab-ir":
+                raise GuardError(f"{source}: cabinet IR files must use TooB Cab IR")
+
     return data
 
 
 def compact_sha256(data):
     compact = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(compact).hexdigest()
+
+
+def content_fingerprint(data):
+    identity = json.loads(json.dumps(data))
+    for key in ("id", "name", "author", "description", "tags", "license", "checksums", "previews"):
+        identity.pop(key, None)
+    preset = identity.get("preset", {})
+    preset.pop("name", None)
+    preset.pop("author", None)
+    return compact_sha256(identity)
+
+
+def normalized_name(value):
+    return " ".join(str(value).split()).casefold()
 
 
 def validate_catalog():
@@ -132,11 +159,13 @@ def validate_catalog():
                 failures.append(f"{path.relative_to(ROOT)}: only manifest.json is allowed")
 
     catalog = load_json(ROOT / "catalog/index.json")
-    if catalog.get("format") != "pimfx-community-catalog" or catalog.get("formatVersion") != 1:
+    if catalog.get("format") != "pimfx-community-catalog" or catalog.get("formatVersion") != 2:
         failures.append("catalog/index.json: unsupported catalog format")
 
     indexed_paths = set()
     seen_ids = set()
+    seen_names = set()
+    seen_content = set()
     for entry in catalog.get("presets", []):
         preset_id = entry.get("id", "")
         manifest_path = entry.get("manifestPath", "")
@@ -145,6 +174,14 @@ def validate_catalog():
             failures.append(f"catalog/index.json: invalid or duplicate id {preset_id!r}")
             continue
         seen_ids.add(preset_id)
+        name_key = normalized_name(entry.get("name", ""))
+        content_key = entry.get("contentSha256", "")
+        if not name_key or name_key in seen_names:
+            failures.append(f"catalog/index.json: duplicate preset name {entry.get('name')!r}")
+        seen_names.add(name_key)
+        if not re.fullmatch(r"[a-f0-9]{64}", content_key) or content_key in seen_content:
+            failures.append(f"catalog/index.json: invalid or duplicate content fingerprint for {preset_id}")
+        seen_content.add(content_key)
         if manifest_path != expected_path:
             failures.append(f"catalog/index.json: unsafe manifest path for {preset_id}")
             continue
@@ -159,6 +196,8 @@ def validate_catalog():
                 failures.append(f"{manifest_path}: manifest id does not match index")
             if entry.get("manifestSha256") != compact_sha256(data):
                 failures.append(f"{manifest_path}: catalog checksum mismatch")
+            if entry.get("contentSha256") != content_fingerprint(data):
+                failures.append(f"{manifest_path}: catalog content fingerprint mismatch")
         except GuardError as exc:
             failures.append(str(exc))
 
@@ -235,8 +274,15 @@ def prepare_issue(event_path):
 
     catalog_path = ROOT / "catalog/index.json"
     catalog = load_json(catalog_path)
-    if any(entry.get("id") == preset_id for entry in catalog.get("presets", [])):
-        raise GuardError(f"catalog already contains preset id {preset_id}")
+    fingerprint = content_fingerprint(data)
+    name_key = normalized_name(data.get("name", ""))
+    for entry in catalog.get("presets", []):
+        if entry.get("id") == preset_id:
+            raise GuardError(f"catalog already contains preset id {preset_id}")
+        if normalized_name(entry.get("name", "")) == name_key:
+            raise GuardError("catalog already contains a preset with that name")
+        if entry.get("contentSha256") == fingerprint:
+            raise GuardError("catalog already contains that exact preset and settings")
 
     manifest_path = ROOT / "presets" / preset_id / "manifest.json"
     if manifest_path.exists():
@@ -258,6 +304,7 @@ def prepare_issue(event_path):
         "minimumPiMfxVersion": data["compatibility"]["minimumPiMfxVersion"],
         "manifestPath": f"presets/{preset_id}/manifest.json",
         "manifestSha256": compact_sha256(data),
+        "contentSha256": fingerprint,
     }
     catalog.setdefault("presets", []).append(entry)
     catalog["presets"].sort(key=lambda item: item["id"])
