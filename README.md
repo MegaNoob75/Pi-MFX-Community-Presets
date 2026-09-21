@@ -15,10 +15,14 @@ This repository is the public catalog of approved community presets for [Pi-MFX]
 
 - Submissions are JSON data only.
 - Plugins, models, IRs, audio, executables, scripts, installers, HTML, SVG, symlinks, and arbitrary download URLs are rejected.
-- TONE3000 and other supported assets are referenced only by stable provider IDs, filenames, and checksums.
+- Preset manifests use MIT. Referenced NAM and IR assets retain their creators' own licenses and are never redistributed here.
+- NAM and cabinet IR dependencies use TONE3000 tone/model IDs, creator attribution, filenames, and checksums.
+- NAM files must use TooB Neural Amp Modeler; cabinet IRs must use TooB Cab IR.
+- Patchstorage files and arbitrary provider downloads are not accepted.
 - Untrusted issue content is never executed.
 - No personal GitHub token or publishing credential is stored on a Pi.
 - Pi-MFX shows an installation plan before changing a device.
+- Duplicate catalog names and duplicate preset/settings fingerprints are rejected.
 - Imports create a new Community bank and never overwrite user data.
 
 ## Layout
