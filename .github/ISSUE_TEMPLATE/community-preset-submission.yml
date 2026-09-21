@@ -1,18 +1,18 @@
 name: Community preset submission
-description: Submit a Pi-MFX preset manifest for safety checks and catalog review.
-title: "[Preset]: "
+description: Submit a Pi-MFX preset manifest for automated checks and human catalog review.
+title: "[Preset submission] "
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for sharing a Pi-MFX preset.
 
-        Pi-MFX should have downloaded a JSON manifest before opening this form. Attach that JSON file below. This intake issue does not publish the preset: a maintainer reviews it, proposes it through a pull request, and the catalog checks must pass before merge.
+        Pi-MFX should have downloaded a JSON manifest before opening this form. Attach it below. GitHub validates the JSON without executing it. A maintainer must approve the generated pull request before the preset appears in the catalog.
   - type: upload
     id: manifest
     attributes:
       label: Preset manifest
-      description: Attach the JSON file downloaded from Pi-MFX. Do not attach plugins, scripts, models, IRs, or other executable content.
+      description: Attach the JSON file downloaded from Pi-MFX. Do not attach plugins, scripts, models, IRs, audio, or executable content.
     validations:
       required: true
   - type: textarea
@@ -20,7 +20,7 @@ body:
     attributes:
       label: Notes for the reviewer
       description: Optional context about the sound, intended instrument, or required equipment.
-      placeholder: Clean, crunch, high gain, bass, acoustic, or other helpful details.
+      placeholder: Clean, crunch, high gain, bass, acoustic, or other useful details.
     validations:
       required: false
   - type: checkboxes
@@ -30,7 +30,7 @@ body:
       options:
         - label: I created this preset or have permission to share it under the license in the manifest.
           required: true
-        - label: I understand that plugins, models, IR files, scripts, and arbitrary download links are not included.
+        - label: I understand that plugins, models, IR files, audio, scripts, and arbitrary download links are not included.
           required: true
-        - label: I understand that this submission will be public and requires review before it appears in the catalog.
+        - label: I understand that this submission is public and requires human approval before publication.
           required: true
