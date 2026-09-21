@@ -2,27 +2,35 @@
 
 ## Submit from Pi-MFX
 
-1. Open **Community Presets → Share Preset**.
-2. Enter the author, license, description, and tags.
-3. Select **Create Manifest**.
-4. Select **Submit for Review**. Pi-MFX downloads the JSON manifest and opens the [submission form](https://github.com/MegaNoob75/Pi-MFX-Community-Presets/issues/new?template=community-preset-submission.yml).
-5. Attach the downloaded JSON file and submit the form.
+1. Load and save the preset you want to share.
+2. Open **Community Presets → Share Preset**.
+3. Enter the author, license, description, and tags.
+4. Select **Create Manifest**, then **Submit for Review**.
+5. Attach the downloaded JSON file to the GitHub form and submit it.
 
-The intake issue is the quarantine boundary: it cannot change the catalog. A maintainer reviews the attachment, proposes accepted data through a pull request, waits for GitHub Actions to pass, and then approves the merge. No GitHub credential is stored on a Pi-MFX device.
+GitHub validates the attachment as data. It does not execute the submission.
 
-## Allowed package content
+## Maintainer approval
 
-- Versioned Pi-MFX preset and snapshot data
-- Controller assignments, tempo, and gain settings
-- LV2 URIs from the trusted Pi-MFX plugin catalog
-- TONE3000 model IDs, architecture, expected filename, and checksum
-- Stable identifiers from supported IR providers
-- Author, description, tags, license, compatibility, and checksums
+1. Wait for the issue comment confirming that validation passed.
+2. Review the manifest summary and submission notes.
+3. Apply the **approved-for-pr** label.
+4. Open the automatically generated pull request.
+5. Wait for **Validate catalog** to pass.
+6. Review the changed manifest and catalog entry, then merge.
 
-## Never allowed
+The generated branch is unique to that submission and is deleted automatically when its pull request is merged or closed. Merging closes the intake issue.
 
-Plugins, NAM/AIDA-X model files, IR files, executables, scripts, installer commands, HTML, JavaScript, SVG, symlinks, path traversal, secrets, credentials, or arbitrary download URLs.
+## Allowed content
 
-## Approval checks
+- Pi-MFX preset, snapshot, controller, tempo, and gain settings
+- Trusted LV2 effect URIs
+- TONE3000 model IDs, architecture, filename, and checksum
+- Stable identifiers from supported providers
+- Author, description, tags, license, and compatibility metadata
 
-Approval requires strict schema and content validation, dependency review, checksum verification, duplicate detection, a passing catalog workflow, and human review. Untrusted submission attachments are never executed.
+## Rejected content
+
+Plugins, model files, IR files, audio, executables, scripts, installer commands, HTML, JavaScript, SVG, symlinks, path traversal, secrets, credentials, or arbitrary download URLs.
+
+Automation checks structure, paths, identifiers, checksums, and forbidden content. A human remains responsible for authorship, licensing, usefulness, and the final merge.
