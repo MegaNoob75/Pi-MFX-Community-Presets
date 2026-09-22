@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import datetime as dt
 import hashlib
 import json
+import math
 import os
 import pathlib
 import re
@@ -129,13 +131,38 @@ def validate_manifest(data, source="manifest"):
     return data
 
 
+def pimfx_compact_json(data):
+    """Serialize JSON exactly like Pi-MFX Json::dump()."""
+    if data is None:
+        return "null"
+    if isinstance(data, bool):
+        return "true" if data else "false"
+    if isinstance(data, int):
+        return str(data)
+    if isinstance(data, float):
+        if not math.isfinite(data):
+            return "null"
+        if data.is_integer() and abs(data) < 1e15:
+            return str(int(data))
+        return format(data, ".17g")
+    if isinstance(data, str):
+        return json.dumps(data, ensure_ascii=False)
+    if isinstance(data, list):
+        return "[" + ",".join(pimfx_compact_json(item) for item in data) + "]"
+    if isinstance(data, dict):
+        return "{" + ",".join(
+            json.dumps(str(key), ensure_ascii=False) + ":" + pimfx_compact_json(value)
+            for key, value in data.items()
+        ) + "}"
+    raise GuardError(f"unsupported JSON value type: {type(data).__name__}")
+
+
 def compact_sha256(data):
-    compact = json.dumps(data, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    return hashlib.sha256(compact).hexdigest()
+    return hashlib.sha256(pimfx_compact_json(data).encode("utf-8")).hexdigest()
 
 
 def content_fingerprint(data):
-    identity = json.loads(json.dumps(data))
+    identity = copy.deepcopy(data)
     for key in ("id", "name", "author", "description", "tags", "license", "checksums", "previews"):
         identity.pop(key, None)
     preset = identity.get("preset", {})
@@ -146,6 +173,20 @@ def content_fingerprint(data):
 
 def normalized_name(value):
     return " ".join(str(value).split()).casefold()
+
+
+def ensure_unique_submission(data):
+    catalog = load_json(ROOT / "catalog/index.json")
+    fingerprint = content_fingerprint(data)
+    name_key = normalized_name(data.get("name", ""))
+    for entry in catalog.get("presets", []):
+        if entry.get("id") == data.get("id"):
+            raise GuardError(f"catalog already contains preset id {data.get('id')}")
+        if normalized_name(entry.get("name", "")) == name_key:
+            raise GuardError("catalog already contains a preset with that name")
+        if entry.get("contentSha256") == fingerprint:
+            raise GuardError("catalog already contains that exact preset and settings")
+    return catalog, fingerprint
 
 
 def validate_catalog():
@@ -273,16 +314,7 @@ def prepare_issue(event_path):
         raise GuardError("preset id is unsafe")
 
     catalog_path = ROOT / "catalog/index.json"
-    catalog = load_json(catalog_path)
-    fingerprint = content_fingerprint(data)
-    name_key = normalized_name(data.get("name", ""))
-    for entry in catalog.get("presets", []):
-        if entry.get("id") == preset_id:
-            raise GuardError(f"catalog already contains preset id {preset_id}")
-        if normalized_name(entry.get("name", "")) == name_key:
-            raise GuardError("catalog already contains a preset with that name")
-        if entry.get("contentSha256") == fingerprint:
-            raise GuardError("catalog already contains that exact preset and settings")
+    catalog, fingerprint = ensure_unique_submission(data)
 
     manifest_path = ROOT / "presets" / preset_id / "manifest.json"
     if manifest_path.exists():
@@ -336,6 +368,7 @@ def main():
             validate_catalog()
         elif args.command == "validate-issue":
             number, data = manifest_from_issue(args.event)
+            ensure_unique_submission(data)
             print(f"Issue #{number} manifest {data['id']} passed validation")
         elif args.command == "prepare-issue":
             prepare_issue(args.event)
