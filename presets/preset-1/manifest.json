@@ -1,0 +1,170 @@
+{
+  "format": "pimfx-community-preset",
+  "formatVersion": 2,
+  "id": "preset-1",
+  "name": "Preset 1",
+  "author": "ross",
+  "description": "test",
+  "tags": [
+    "test"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "minimumPiMfxVersion": "0.1.0"
+  },
+  "preset": {
+    "name": "Preset 1",
+    "author": "ross",
+    "tempo": 120.731,
+    "inputGainDb": 0,
+    "outputGainDb": 0,
+    "chain": [
+      {
+        "id": "slot-9c8f757291b2",
+        "uri": "http://two-play.com/plugins/toob-nam",
+        "name": "TooB Neural Amp Modeler",
+        "enabled": true,
+        "state": {
+          "controls": {
+            "inputGain": -6.153846263885498,
+            "modelSize": 1,
+            "outputGain": 23.461538314819336,
+            "gate": -120,
+            "buffer": 1,
+            "toneStack": 3,
+            "bass": 4.015748023986816,
+            "mid": 2.8397624492645264,
+            "treble": 5,
+            "inputCalibrationMode": 1,
+            "calibration": -10.121552467346191,
+            "outputCalibration": 1,
+            "version": 1
+          },
+          "properties": {
+            "http://two-play.com/plugins/toob-nam#modelFile": "_AMP_ JCM800-2203-MODIFIED-HI All-In - BLEND _3.nam"
+          }
+        }
+      }
+    ],
+    "snapshots": [
+      {
+        "id": "snap-54b7f95060f3",
+        "name": "Snapshot 1",
+        "slots": {
+          "slot-9c8f757291b2": {
+            "controls": {
+              "inputGain": -9.133858680725098,
+              "modelSize": 0.5354330539703369,
+              "outputGain": -23.622047424316406,
+              "gate": -120,
+              "buffer": 1,
+              "toneStack": 3,
+              "bass": 4.015748023986816,
+              "mid": 2.8397624492645264,
+              "treble": 5,
+              "inputCalibrationMode": 1,
+              "calibration": -10.121552467346191,
+              "outputCalibration": 1,
+              "version": 1
+            },
+            "properties": {
+              "http://two-play.com/plugins/toob-nam#modelFile": "/var/lib/pimfx/models/Full Rigs/FR TMB-66 MBDR MW Red Mdn - 1 - 4FB LL SM57a.nam"
+            },
+            "enabled": true
+          }
+        },
+        "slot": 0
+      },
+      {
+        "id": "snap-0a2ad52baa6f",
+        "name": "Snapshot 5",
+        "slots": {
+          "slot-9c8f757291b2": {
+            "controls": {
+              "inputGain": 40,
+              "modelSize": 0.5354330539703369,
+              "outputGain": -23.622047424316406,
+              "gate": -120,
+              "buffer": 1,
+              "toneStack": 3,
+              "bass": 4.015748023986816,
+              "mid": 2.8397624492645264,
+              "treble": 5,
+              "inputCalibrationMode": 1,
+              "calibration": -6,
+              "outputCalibration": 1,
+              "version": 1
+            },
+            "properties": {
+              "http://two-play.com/plugins/toob-nam#modelFile": "/var/lib/pimfx/models/Full Rigs/FR TMB-66 MBDR MW Red Mdn - 1 - 4FB LL SM57a.nam"
+            },
+            "enabled": true
+          }
+        },
+        "slot": 4
+      }
+    ],
+    "parameterBindings": [
+      {
+        "controlId": "ctl-mtrazrd6-8",
+        "action": "setParameter",
+        "slotId": "slot-9c8f757291b2",
+        "portSymbol": "inputGain",
+        "min": -40,
+        "max": 40,
+        "inverted": false
+      },
+      {
+        "controlId": "ctl-mtrazrsf-9",
+        "action": "setParameter",
+        "slotId": "slot-9c8f757291b2",
+        "portSymbol": "modelSize",
+        "min": 0,
+        "max": 1,
+        "inverted": false
+      },
+      {
+        "controlId": "ctl-mtrazs9m-10",
+        "action": "setParameter",
+        "slotId": "slot-9c8f757291b2",
+        "portSymbol": "outputGain",
+        "min": -40,
+        "max": 40,
+        "inverted": false
+      },
+      {
+        "controlId": "ctl-mtrazsmu-11",
+        "action": "setParameter",
+        "slotId": "slot-9c8f757291b2",
+        "portSymbol": "bass",
+        "min": 0,
+        "max": 10,
+        "inverted": false
+      }
+    ]
+  },
+  "dependencies": {
+    "effects": [
+      {
+        "uri": "http://two-play.com/plugins/toob-nam",
+        "catalogId": "toobamp"
+      }
+    ],
+    "tone3000": [
+      {
+        "sha256": "344283b9d7fa5053754998bc36e8897baf196ab4f0624c08c84a036439e2a5fb",
+        "expectedFilename": "_AMP_ JCM800-2203-MODIFIED-HI All-In - BLEND _3.nam",
+        "kind": "model",
+        "toneId": "44209",
+        "modelId": "234544",
+        "architecture": "1",
+        "toneTitle": "Marshall JCM800 2203 Modified",
+        "creator": "2dor",
+        "sourceLicense": "t3k"
+      }
+    ],
+    "irs": [],
+    "localAssets": []
+  },
+  "checksums": {}
+}
