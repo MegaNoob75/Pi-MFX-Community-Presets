@@ -1,0 +1,172 @@
+{
+  "format": "pimfx-community-preset",
+  "formatVersion": 2,
+  "id": "preset-2",
+  "name": "Preset 2",
+  "author": "ross",
+  "description": "test",
+  "tags": [
+    "test"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "minimumPiMfxVersion": "0.1.0"
+  },
+  "preset": {
+    "name": "Preset 2",
+    "author": "ross",
+    "tempo": 257.33,
+    "inputGainDb": 0,
+    "outputGainDb": 0,
+    "chain": [
+      {
+        "id": "slot-979c5e4fc267",
+        "uri": "http://two-play.com/plugins/toob-tuner",
+        "name": "TooB Tuner",
+        "enabled": true,
+        "state": {
+          "controls": {
+            "MUTE": 0,
+            "REFFREQ": 440,
+            "THRESHOLD": -37
+          }
+        }
+      },
+      {
+        "id": "slot-ace393a7a25b",
+        "uri": "http://two-play.com/plugins/toob-parametric-eq-stereo",
+        "name": "TooB Parametric EQ (Stereo)",
+        "enabled": true,
+        "state": {
+          "controls": {
+            "loCut": 20,
+            "hiCut": 21,
+            "lfLevel": 0,
+            "lfC": 120,
+            "lmfLevel": 1.1538461446762085,
+            "lmfC": 400,
+            "lmfQ": 1.5,
+            "hmfLevel": -2.163461446762085,
+            "hmfC": 2,
+            "hmfQ": 1.5,
+            "hfLevel": -0.5769230723381042,
+            "hfC": 2,
+            "gain": -26.538461685180664
+          }
+        }
+      },
+      {
+        "id": "slot-1e12919b3706",
+        "uri": "http://two-play.com/plugins/toob-nam",
+        "name": "TooB Neural Amp Modeler",
+        "enabled": true,
+        "state": {
+          "controls": {
+            "inputGain": 0,
+            "modelSize": 1,
+            "outputGain": -1.923076868057251,
+            "gate": -111.92308044433594,
+            "buffer": 1,
+            "toneStack": 3,
+            "bass": 5,
+            "mid": 5.721153736114502,
+            "treble": 5,
+            "inputCalibrationMode": 1,
+            "calibration": 0.33047735691070557,
+            "outputCalibration": 1,
+            "version": 1
+          },
+          "properties": {
+            "http://two-play.com/plugins/toob-nam#modelFile": "_AMP_ JCM800-2203-MODIFIED-HI All-In - BLEND _3.nam"
+          }
+        }
+      },
+      {
+        "id": "slot-1a3e3fd78893",
+        "uri": "http://two-play.com/plugins/toob-flanger-stereo",
+        "name": "TooB BF-2 Stereo Flanger",
+        "enabled": true,
+        "state": {
+          "controls": {
+            "manual": 0.5239766240119934,
+            "depth": 0.32692307233810425,
+            "rate": 0.26923078298568726,
+            "res": 0.5,
+            "dryWet": 1
+          }
+        }
+      },
+      {
+        "id": "slot-c6e3dc6bf565",
+        "uri": "http://two-play.com/plugins/toob-multi-echo-stereo",
+        "name": "Toob Multi-Tap Delay (Stereo)",
+        "enabled": true,
+        "state": {
+          "controls": {
+            "bypass": 1,
+            "delay1": 932.654541015625,
+            "level1": 32.06854248046875,
+            "feedback1": 39,
+            "pan1": 0.08690330386161804,
+            "delay2": 1062.781494140625,
+            "level2": 0,
+            "feedback2": 0,
+            "pan2": 0,
+            "delay3": 23,
+            "level3": 0,
+            "feedback3": 0,
+            "pan3": 0,
+            "delay4": 40,
+            "level4": 0,
+            "feedback4": 50,
+            "pan4": 0,
+            "direct": 100,
+            "master": 0,
+            "tails": 1
+          }
+        },
+        "tempoLinks": {
+          "delay1": 4
+        }
+      }
+    ],
+    "snapshots": [],
+    "parameterBindings": []
+  },
+  "dependencies": {
+    "effects": [
+      {
+        "uri": "http://two-play.com/plugins/toob-tuner"
+      },
+      {
+        "uri": "http://two-play.com/plugins/toob-parametric-eq-stereo"
+      },
+      {
+        "uri": "http://two-play.com/plugins/toob-nam",
+        "catalogId": "toobamp"
+      },
+      {
+        "uri": "http://two-play.com/plugins/toob-flanger-stereo"
+      },
+      {
+        "uri": "http://two-play.com/plugins/toob-multi-echo-stereo"
+      }
+    ],
+    "tone3000": [
+      {
+        "sha256": "344283b9d7fa5053754998bc36e8897baf196ab4f0624c08c84a036439e2a5fb",
+        "expectedFilename": "_AMP_ JCM800-2203-MODIFIED-HI All-In - BLEND _3.nam",
+        "kind": "model",
+        "toneId": "44209",
+        "modelId": "234544",
+        "architecture": "1",
+        "toneTitle": "Marshall JCM800 2203 Modified",
+        "creator": "2dor",
+        "sourceLicense": "t3k"
+      }
+    ],
+    "irs": [],
+    "localAssets": []
+  },
+  "checksums": {}
+}
