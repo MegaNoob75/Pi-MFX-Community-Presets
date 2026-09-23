@@ -16,20 +16,6 @@
       "manifestPath": "presets/preset-1/manifest.json",
       "manifestSha256": "944465a7b2b2f955b71f75505ab7e7d58023cee53d2b1af04abb837d61e71368",
       "contentSha256": "81df65a072f27eda080cd4062adc4bb1040ab5a08972b3ff70c52baf55f11e09"
-    },
-    {
-      "id": "preset-2",
-      "name": "Preset 2",
-      "author": "ross",
-      "description": "test",
-      "tags": [
-        "test"
-      ],
-      "license": "MIT",
-      "minimumPiMfxVersion": "0.1.0",
-      "manifestPath": "presets/preset-2/manifest.json",
-      "manifestSha256": "e76057590de39b318e40e9dfa53203fab165e7aec4a6448e4184cb3e3b4431ec",
-      "contentSha256": "1b35ef40c031b5ccd435bd9f1ba4896a1a23ec1442360cf2d32cd0e53d2387f2"
     }
   ]
 }
