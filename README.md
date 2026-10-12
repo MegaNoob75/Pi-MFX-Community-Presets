@@ -34,3 +34,9 @@ This repository is the public catalog of approved community presets for [Pi-MFX]
 - `.github/workflows/` — submission processing and catalog validation.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the review workflow.
+
+## Routing format
+
+New submissions require package format version 3, routing format version 1, and Pi-MFX 0.6.0 or newer. Blocks are a flat list; explicit forward audio connections define splits and merges. Mixer blocks need no plugin dependency. Snapshots can store existing connection levels, pan, mute, and solo. Feedback, duplicate connections, and unknown block references are rejected.
+
+The earlier development catalog was cleared for this format change. Export new manifests from the routing editor; version 2 submissions are no longer accepted. Canvas positions are saved but excluded from duplicate sound/settings fingerprints.

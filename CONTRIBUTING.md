@@ -34,3 +34,9 @@ The generated branch is unique to that submission and is deleted automatically w
 Plugins, model files, IR files, audio, executables, scripts, installer commands, HTML, JavaScript, SVG, symlinks, path traversal, secrets, credentials, or arbitrary download URLs.
 
 Automation rejects duplicate names and duplicate preset/settings fingerprints, then checks structure, paths, identifiers, checksums, TooB routing, and forbidden content. A human remains responsible for authorship, licensing, usefulness, and the final merge.
+
+## Routing format
+
+New submissions require package format version 3, routing format version 1, and Pi-MFX 0.6.0 or newer. Blocks are a flat list; explicit forward audio connections define splits and merges. Mixer blocks need no plugin dependency. Snapshots can store existing connection levels, pan, mute, and solo. Feedback, duplicate connections, and unknown block references are rejected.
+
+The earlier development catalog was cleared for this format change. Export new manifests from the routing editor; version 2 submissions are no longer accepted. Canvas positions are saved but excluded from duplicate sound/settings fingerprints.

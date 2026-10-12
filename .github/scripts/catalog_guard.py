@@ -67,11 +67,48 @@ def walk(value, depth=0):
 
 
 def validate_manifest(data, source="manifest"):
-    schema = load_json(ROOT / "schema/preset-package-v2.schema.json")
+    schema = load_json(ROOT / "schema/preset-package-v3.schema.json")
     errors = sorted(Draft202012Validator(schema).iter_errors(data), key=lambda item: list(item.path))
     if errors:
         detail = "; ".join(f"{error.json_path}: {error.message}" for error in errors[:8])
         raise GuardError(f"{source}: schema validation failed: {detail}")
+
+
+    preset = data["preset"]
+    blocks = preset["chain"]
+    ids = {"input", "output"}
+    for block in blocks:
+        if block["id"] in ids:
+            raise GuardError(f"{source}: duplicate or reserved block ID")
+        ids.add(block["id"])
+    routing = preset["routing"]
+    if any(key not in ids for key in routing["positions"]):
+        raise GuardError(f"{source}: unknown positioned block")
+    edges = routing["edges"]
+    degree = dict.fromkeys(ids, 0)
+    seen = set()
+    for edge in edges:
+        pair = (edge["from"], edge["to"])
+        if pair in seen or pair[0] not in ids or pair[1] not in ids or pair[0] == "output" or pair[1] == "input" or pair[0] == pair[1]:
+            raise GuardError(f"{source}: invalid audio connection")
+        seen.add(pair)
+        degree[pair[1]] += 1
+    ready = [key for key, count in degree.items() if count == 0]
+    for key in ready:
+        for edge in edges:
+            if edge["from"] == key:
+                degree[edge["to"]] -= 1
+                if degree[edge["to"]] == 0:
+                    ready.append(edge["to"])
+    if len(ready) != len(ids):
+        raise GuardError(f"{source}: feedback loops are not supported")
+    effect_uris = {b["uri"] for b in blocks if b.get("kind", "effect") == "effect"}
+    if effect_uris != {e["uri"] for e in data["dependencies"]["effects"]}:
+        raise GuardError(f"{source}: plugin dependencies do not match blocks")
+    for snapshot in preset["snapshots"]:
+        for edge in snapshot.get("routingMix", []):
+            if (edge["from"], edge["to"]) not in seen:
+                raise GuardError(f"{source}: snapshot references an unknown connection")
 
     values = list(walk(data))
     if len(values) > MAX_NODES:
@@ -100,6 +137,12 @@ def validate_manifest(data, source="manifest"):
     for effect in data.get("dependencies", {}).get("effects", []):
         allowed_uris.append(effect.get("uri", ""))
 
+    allowed_uris.extend([
+        "http://two-play.com/plugins/toob-cab-ir#impulseFile",
+        "http://two-play.com/plugins/toob-cab-ir#impulseFile2",
+        "http://two-play.com/plugins/toob-cab-ir#impulseFile3",
+        "http://two-play.com/plugins/toob-nam#modelFile",
+    ])
     without_uris = rendered
     for uri in sorted({uri for uri in allowed_uris if uri}, key=len, reverse=True):
         without_uris = without_uris.replace(json.dumps(uri, ensure_ascii=False)[1:-1], "")
@@ -168,6 +211,7 @@ def content_fingerprint(data):
     preset = identity.get("preset", {})
     preset.pop("name", None)
     preset.pop("author", None)
+    preset.get("routing", {}).pop("positions", None)
     return compact_sha256(identity)
 
 
