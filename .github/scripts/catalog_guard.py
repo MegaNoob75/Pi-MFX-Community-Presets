@@ -106,9 +106,12 @@ def validate_manifest(data, source="manifest"):
     if effect_uris != {e["uri"] for e in data["dependencies"]["effects"]}:
         raise GuardError(f"{source}: plugin dependencies do not match blocks")
     for snapshot in preset["snapshots"]:
+        snapshot_seen = set()
         for edge in snapshot.get("routingMix", []):
-            if (edge["from"], edge["to"]) not in seen:
-                raise GuardError(f"{source}: snapshot references an unknown connection")
+            pair = (edge["from"], edge["to"])
+            if pair not in seen or pair in snapshot_seen:
+                raise GuardError(f"{source}: snapshot references an unknown or duplicate connection")
+            snapshot_seen.add(pair)
 
     values = list(walk(data))
     if len(values) > MAX_NODES:

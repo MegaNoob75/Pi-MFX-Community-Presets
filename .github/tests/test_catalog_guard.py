@@ -62,6 +62,13 @@ class RoutingPackageTest(unittest.TestCase):
         with self.assertRaises(guard.GuardError):
             guard.validate_manifest(data)
 
+    def test_duplicate_snapshot_mix_rejected(self):
+        data = fixture()
+        edge = {"from": "amp", "to": "mix", "levelDb": -6}
+        data["preset"]["snapshots"] = [{"routingMix": [edge, copy.deepcopy(edge)]}]
+        with self.assertRaises(guard.GuardError):
+            guard.validate_manifest(data)
+
     def test_dependencies_match_plugins(self):
         data = fixture()
         data["dependencies"]["effects"] = []
